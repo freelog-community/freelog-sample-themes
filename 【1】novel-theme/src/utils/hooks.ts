@@ -122,7 +122,7 @@ export const useMySignedList = () => {
     }
 
     const [list, statusList] = await Promise.all([
-      freelogApp.getExhibitListById({ exhibitIds: ids }),
+      freelogApp.getExhibitListById({ exhibitIds: ids, isLoadVersionProperty: 1 }),
       freelogApp.getExhibitAuthStatus(ids)
     ]);
 
