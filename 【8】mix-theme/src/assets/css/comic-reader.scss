@@ -12,7 +12,7 @@
   }
 
   &.scroll-mode {
-    :deep .reader-header-wrapper,
+    :deep(.reader-header-wrapper),
     .reader-footer {
       right: 15px !important;
     }
