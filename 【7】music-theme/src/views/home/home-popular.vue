@@ -737,7 +737,7 @@ const isSelectedData = item => {
             flex-direction: column;
             align-items: stretch;
             padding: 5px;
-            background: var(--text-first-color);
+            background: var(--text-reverse-color);
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             border-radius: 10px;
             -webkit-backdrop-filter: blur(20px);
