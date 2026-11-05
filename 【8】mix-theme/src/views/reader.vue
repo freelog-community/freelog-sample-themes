@@ -1117,7 +1117,7 @@ export default {
 
       .recommend-title {
         font-size: 16px;
-        font-weight: 600;
+        font-weight: 400;
         color: #222222;
         line-height: 22px;
         margin-bottom: 30px;
@@ -1485,7 +1485,7 @@ export default {
         margin-bottom: 40px;
 
         .recommend-title {
-          font-weight: 600;
+          font-weight: 400;
           font-size: 28px;
           color: #222222;
           line-height: 34px;
@@ -1600,7 +1600,7 @@ export default {
           margin-bottom: 30px;
 
           .recommend-title {
-            font-weight: 600;
+            font-weight: 400;
             font-size: 28px;
             color: #222222;
             line-height: 34px;
@@ -1637,7 +1637,7 @@ export default {
 
         .recommend-title {
           font-size: 16px;
-          font-weight: 600;
+          font-weight: 400;
           color: #222222;
           line-height: 22px;
           margin-bottom: 30px;
@@ -1790,7 +1790,7 @@ export default {
     margin-bottom: 40px;
 
     .recommend-title {
-      font-weight: 600;
+      font-weight: 400;
       font-size: 28px;
       color: #222222;
       line-height: 34px;
