@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - master
-      - feat-upgrade-comment
 
   workflow_dispatch:
 
