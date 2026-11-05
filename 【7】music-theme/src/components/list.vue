@@ -846,7 +846,7 @@ export default {
       }
     }
 
-    ::v-deep .el-skeleton.is-animated .el-skeleton__item {
+    :deep(.el-skeleton.is-animated .el-skeleton__item) {
       background: linear-gradient(
           90deg,
           rgb(70, 70, 70) 25%,
@@ -897,7 +897,7 @@ export default {
       }
     }
 
-    ::v-deep .el-skeleton.is-animated .el-skeleton__item {
+    :deep(.el-skeleton.is-animated .el-skeleton__item) {
       background: linear-gradient(
           90deg,
           rgb(70, 70, 70) 25%,

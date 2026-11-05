@@ -235,7 +235,7 @@
       line-height: 20px;
       color: var(--text-sixth-color);
 
-      ::v-deep .play-status {
+      :deep(.play-status) {
         width: auto;
         justify-content: flex-end;
 
@@ -501,17 +501,17 @@
         width: 100%;
         height: 4px;
 
-        &.no-voice ::v-deep {
-          .el-slider__button {
+        &.no-voice {
+          :deep(.el-slider__button) {
             display: none;
           }
 
-          .el-slider__bar {
+          :deep(.el-slider__bar) {
             width: 0 !important;
           }
         }
 
-        ::v-deep .el-slider__runway {
+        :deep(.el-slider__runway) {
           margin: 0;
           height: 4px;
           background-color: var(--text-point-third-color);
@@ -577,7 +577,7 @@
           width: 4px;
           height: 130px;
 
-          ::v-deep .el-slider__runway {
+          :deep(.el-slider__runway) {
             margin: 0;
             width: 4px;
             // background-color: var(--text-point-third-color);
@@ -834,13 +834,13 @@
         justify-content: center;
         pointer-events: none;
 
-        ::v-deep .el-progress {
+        :deep(.el-progress) {
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        ::v-deep .el-progress-circle__track {
+        :deep(.el-progress-circle__track) {
           stroke: var(--text-point-third-color);
         }
       }
