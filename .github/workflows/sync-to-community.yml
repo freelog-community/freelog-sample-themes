@@ -14,6 +14,9 @@ permissions:
 
 jobs:
   sync:
+    # 只允许 freelogfe 源仓库执行同步
+    if: github.repository == 'freelogfe/freelog-sample-themes'
+
     runs-on: ubuntu-latest
 
     steps:
