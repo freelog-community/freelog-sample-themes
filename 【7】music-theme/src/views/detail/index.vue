@@ -54,6 +54,14 @@
                   alt="未授权"
                   v-else-if="voiceInfo?.defaulterIdentityType >= 4"
                 ></i>
+                <i
+                  class="freelog fl-icon-zhuanjibiaoshi zhuanji-icon"
+                  v-if="voiceInfo?.articleInfo?.articleType === 2"
+                ></i>
+                <i
+                  class="freelog fl-icon-danqubiaoshi danqu-icon"
+                  v-if="voiceInfo?.articleInfo?.articleType === 1"
+                ></i>
                 <span class="title">{{ voiceInfo?.exhibitTitle }}</span>
               </div>
 
@@ -212,10 +220,10 @@
             <div class="single-content-intro" v-else>
               <!-- 专辑介绍 -->
               <div class="info-detail" v-if="!subID">
-                <div class="detail-item">
+                <!-- <div class="detail-item">
                   <span class="name">资源类型:</span>
                   <span class="value">{{ voiceInfo?.articleInfo?.resourceType?.[1] }}</span>
-                </div>
+                </div> -->
                 <div
                   class="detail-item"
                   v-if="voiceInfo?.versionInfo?.exhibitProperty.display_artist"
@@ -225,10 +233,10 @@
                     voiceInfo?.versionInfo?.exhibitProperty.display_artist
                   }}</span>
                 </div>
-                <div class="detail-item">
+                <!-- <div class="detail-item">
                   <span class="name">歌曲数量:</span>
                   <span class="value">{{ collectionData.length }}</span>
-                </div>
+                </div> -->
                 <div class="detail-item">
                   <span class="name">发行时间:</span>
                   <span class="value">{{
@@ -264,6 +272,7 @@
 
         <div v-else>
           <div class="single-content-intro">
+            <!-- TODO 有可能逻辑进不到这里，先观察，后删除 -->
             <div class="info-detail" v-if="voiceInfo?.articleInfo?.articleType === 2">
               <div class="detail-item">
                 <span class="name">资源类型:</span>
@@ -443,6 +452,15 @@
               v-if="voiceInfo?.defaulterIdentityType >= 4"
             ></i>
 
+            <i
+              class="freelog fl-icon-zhuanjibiaoshi zhuanji-icon"
+              v-if="voiceInfo?.articleInfo?.articleType === 2"
+            ></i>
+            <i
+              class="freelog fl-icon-danqubiaoshi danqu-icon"
+              v-if="voiceInfo?.articleInfo?.articleType === 1"
+            ></i>
+
             <my-tooltip :content="voiceInfo?.exhibitTitle">
               <span class="title">{{ voiceInfo?.exhibitTitle }}</span>
             </my-tooltip>
@@ -481,20 +499,20 @@
 
           <!-- 专辑详情 -->
           <div class="info-detail" v-if="voiceInfo?.articleInfo?.articleType === 2">
-            <div class="detail-item">
+            <!-- <div class="detail-item">
               <span class="name">资源类型:</span>
               <span class="value">{{ voiceInfo?.articleInfo?.resourceType?.[1] }}</span>
-            </div>
+            </div> -->
             <div class="detail-item" v-if="voiceInfo?.versionInfo?.exhibitProperty.display_artist">
               <span class="name">艺人:</span>
               <span class="value">{{
                 voiceInfo?.versionInfo?.exhibitProperty.display_artist
               }}</span>
             </div>
-            <div class="detail-item">
+            <!-- <div class="detail-item">
               <span class="name">歌曲数量:</span>
               <span class="value">{{ collectionData.length }}</span>
-            </div>
+            </div> -->
             <div class="detail-item">
               <span class="name">发行时间:</span>
               <span class="value">{{
@@ -586,9 +604,9 @@
             v-if="voiceInfo?.articleInfo.articleType === 2 && collectionData.length"
           >
             <div class="title">包含音乐（{{ collectionData.length }}）</div>
-            <div class="content-item-wrap">
+            <div class="content-item-wrap zhuan-ji">
               <div
-                class="content-item"
+                class="content-item zhuan-ji-content-item"
                 :class="{
                   'opacity-40':
                     ![0, 4].includes(item.defaulterIdentityType) ||
@@ -632,7 +650,10 @@
 
                   <span class="music-text">{{ item.exhibitTitle }}</span>
                 </div>
-                <div class="album-sub-btns-area" :class="{ opacity: authLinkAbnormal }">
+                <div
+                  class="album-sub-btns-area zhuan-ji-album-sub-btns-area"
+                  :class="{ opacity: authLinkAbnormal }"
+                >
                   <myTooltip
                     :content="btn.title"
                     v-for="btn in albumSubBtnList(item)"
@@ -645,7 +666,35 @@
                     />
                   </myTooltip>
                 </div>
-                <div class="singer">{{ item.articleInfo.articleProperty?.display_artist }}</div>
+                <div
+                  class="singer zhuan-ji-singer"
+                  :class="{
+                    'unknown-text': !(
+                      item.articleInfo.articleProperty?.display_artist ||
+                      item?.articleInfo?.articleOwnerName
+                    )
+                  }"
+                >
+                  {{
+                    item.articleInfo.articleProperty?.display_artist ||
+                    item?.articleInfo?.articleOwnerName ||
+                    "未知"
+                  }}
+                </div>
+                <div
+                  class="album-name zhuan-ji-album-name"
+                  :class="{
+                    'unknown-text': !(
+                      item.articleInfo.articleProperty?.album_name || voiceInfo?.exhibitTitle
+                    )
+                  }"
+                >
+                  {{
+                    item.articleInfo.articleProperty?.album_name ||
+                    voiceInfo?.exhibitTitle ||
+                    "未知"
+                  }}
+                </div>
                 <!-- 播放中标识 -->
                 <play-status
                   class="time"
@@ -676,6 +725,9 @@
         <span class="exceptional-text"> 此作品因违规无法访问 </span>
       </div>
 
+      <!-- 评论模块 -->
+      <div id="app-vertical-comment"></div>
+
       <!-- 推荐列表模块 -->
       <!-- 专辑推荐 -->
       <div v-if="recommendData.length">
@@ -703,8 +755,6 @@
           />
         </div>
       </div>
-
-      <div id="app-vertical-comment"></div>
     </div>
 
     <DetailFloatMenu
@@ -1021,7 +1071,7 @@ export default {
 
     /** 点击标签：按标签搜索 */
     searchByTag(tag) {
-      const tagName = typeof tag === "string" ? tag : tag?.name ?? String(tag ?? "");
+      const tagName = typeof tag === "string" ? tag : (tag?.name ?? String(tag ?? ""));
       if (!tagName) return;
       this.store.setData({ key: "searchKey", value: "" });
       this.$router.myPush({
@@ -1259,6 +1309,14 @@ export default {
         input.select();
         document.execCommand("Copy");
         showToast("链接复制成功～");
+        freelogApp.pushMessage4Task({
+          taskConfigCode: "TS000077",
+          meta: { presentableId: this.voiceInfo?.exhibitId }
+        });
+        freelogApp.pushMessage4Task({
+          taskConfigCode: "T0004004",
+          meta: { presentableId: this.voiceInfo?.exhibitId }
+        });
       } else {
         this.store.setData({
           key: "shareInfo",
@@ -1340,6 +1398,7 @@ export default {
         currentUserId: this.store.userData.userId,
         theme: this.commentFloatTheme,
         pageBackground: pick("--bg-color"),
+        pageColor: "#44d7b6",
         textPrimary: pick("--text-eighth-color"),
         textSecondary: pick("--text-sixth-color"),
         borderColor: pick("--border-color")
@@ -1418,91 +1477,104 @@ export default {
     /** 获取音乐详情 */
     async getVoiceInfo() {
       this.loading = true;
-      await this.unmountCommentWidget();
-      this.voiceInfo = null;
-      // 合集中的一个单品
-      if (this.subID) {
-        const [exhibitInfo, subInfo, subStatusInfo, url] = await Promise.all([
-          freelogApp.getExhibitById(this.id, { isLoadVersionProperty: 1 }),
-          freelogApp.getCollectionSubById(this.id, { itemId: this.subID }),
-          freelogApp.getCollectionSubAuthStatus(this.id, { itemIds: this.subID }),
-          freelogApp.getCollectionSubFileStream(this.id, {
-            itemId: this.subID,
-            returnUrl: true
-          })
-        ]);
-
-        // 更新微信分享
-        const {
-          itemTitle,
-          articleInfo: { intro, coverImages }
-        } = subInfo.data.data;
-        const config = {
-          exhibitIntro: intro,
-          coverImages,
-          exhibitTitle: itemTitle
-        };
-        updateWxConfig(config);
-
-        this.voiceInfo = {
-          ...subInfo.data.data,
-          coverImages: exhibitInfo.data.data.coverImages,
-          versionInfo: {
-            exhibitProperty: {
-              ...subInfo.data.data.articleInfo?.articleProperty,
-              release_date:
-                subInfo.data.data.articleInfo?.articleProperty?.release_date ||
-                subInfo.data.data.articleInfo?.firstVersionReleaseDate
-            }
-          },
-          defaulterIdentityType: subStatusInfo.data.data[0].defaulterIdentityType,
-          exhibitTitle: subInfo.data.data.itemTitle,
-          updateDate: subInfo.data.data.articleInfo?.latestVersionReleaseDate,
-          url,
-          onlineStatus: exhibitInfo.data.data.onlineStatus
-        };
-      } else {
-        // 普通展品
-        const [exhibitInfo, signCountData, statusInfo, url] = await Promise.all([
-          freelogApp.getExhibitById(this.id, { isLoadVersionProperty: 1 }),
-          freelogApp.getExhibitSignCount(this.id),
-          freelogApp.getExhibitAuthStatus(this.id),
-          freelogApp.getExhibitFileStream(this.id, { returnUrl: true })
-        ]);
-
-        // 更新微信分享
-        updateWxConfig(exhibitInfo.data.data);
-
-        this.voiceInfo = {
-          ...exhibitInfo.data.data,
-          signCount: signCountData.data.data[0].count,
-          defaulterIdentityType: statusInfo.data.data[0].defaulterIdentityType,
-          url
-        };
-
-        // 合集
-        const { articleInfo, exhibitName, coverImages, onlineStatus, versionInfo } =
-          exhibitInfo.data.data;
-        if (articleInfo.articleType === 2) {
-          this.collectionData = [];
-          await this.getCollectionList(
-            this.id,
-            exhibitName,
-            coverImages,
-            onlineStatus,
-            versionInfo
-          );
-        }
-      }
-
-      this.href = freelogApp.getCurrentUrl();
       try {
-        await this.getRecommendList();
-      } catch (e) {
-        console.error("getRecommendList failed", e);
-        this.recommendData = [];
+        await this.unmountCommentWidget();
+        this.voiceInfo = null;
+        // 合集中的一个单品
+        if (this.subID) {
+          const [exhibitInfo, subInfo, subStatusInfo, url] = await Promise.all([
+            freelogApp.getExhibitById(this.id, { isLoadVersionProperty: 1 }),
+            freelogApp.getCollectionSubById(this.id, { itemId: this.subID }),
+            freelogApp.getCollectionSubAuthStatus(this.id, { itemIds: this.subID }),
+            freelogApp.getCollectionSubFileStream(this.id, {
+              itemId: this.subID,
+              returnUrl: true
+            })
+          ]);
+
+          // 更新微信分享
+          const subData = subInfo?.data?.data;
+          if (!subData) {
+            throw new Error("getCollectionSubById returned empty data");
+          }
+          const {
+            itemTitle,
+            articleInfo: { intro, coverImages }
+          } = subData;
+          const config = {
+            exhibitIntro: intro,
+            coverImages,
+            exhibitTitle: itemTitle
+          };
+          updateWxConfig(config);
+
+          this.voiceInfo = {
+            ...subData,
+            coverImages: exhibitInfo?.data?.data?.coverImages,
+            versionInfo: {
+              exhibitProperty: {
+                ...subData.articleInfo?.articleProperty,
+                release_date:
+                  subData.articleInfo?.articleProperty?.release_date ||
+                  subData.articleInfo?.firstVersionReleaseDate
+              }
+            },
+            defaulterIdentityType: subStatusInfo?.data?.data?.[0]?.defaulterIdentityType,
+            exhibitTitle: subData.itemTitle,
+            updateDate: subData.articleInfo?.latestVersionReleaseDate,
+            url,
+            onlineStatus: exhibitInfo?.data?.data?.onlineStatus
+          };
+        } else {
+          // 普通展品
+          const [exhibitInfo, signCountData, statusInfo, url] = await Promise.all([
+            freelogApp.getExhibitById(this.id, { isLoadVersionProperty: 1 }),
+            freelogApp.getExhibitSignCount(this.id),
+            freelogApp.getExhibitAuthStatus(this.id),
+            freelogApp.getExhibitFileStream(this.id, { returnUrl: true })
+          ]);
+
+          const exhibitData = exhibitInfo?.data?.data;
+          if (!exhibitData) {
+            throw new Error("getExhibitById returned empty data");
+          }
+
+          // 更新微信分享
+          updateWxConfig(exhibitData);
+
+          this.voiceInfo = {
+            ...exhibitData,
+            signCount: signCountData?.data?.data?.[0]?.count,
+            defaulterIdentityType: statusInfo?.data?.data?.[0]?.defaulterIdentityType,
+            url
+          };
+
+          // 合集
+          const { articleInfo, exhibitName, coverImages, onlineStatus, versionInfo } = exhibitData;
+          if (articleInfo.articleType === 2) {
+            this.collectionData = [];
+            await this.getCollectionList(
+              this.id,
+              exhibitName,
+              coverImages,
+              onlineStatus,
+              versionInfo
+            );
+          }
+        }
+
+        this.href = freelogApp.getCurrentUrl();
+        try {
+          await this.getRecommendList();
+        } catch (e) {
+          console.error("getRecommendList failed", e);
+          this.recommendData = [];
+        }
+      } catch (error) {
+        console.error("getVoiceInfo failed", error);
+      } finally {
+        this.loading = false;
       }
-      this.loading = false;
       await this.$nextTick();
       if (this.store.selfWidgetConfig.options_commentStatus === "开启") {
         await this.mountCommentWidget();
@@ -1721,7 +1793,7 @@ export default {
 
   &.voice-recommend {
     .voice-wrapper + .voice-wrapper {
-      margin-top: 15px;
+      margin-top: 20px;
     }
 
     .voice-recommend-header {

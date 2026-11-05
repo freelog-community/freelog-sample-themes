@@ -209,7 +209,14 @@
   </div>
 
   <!-- PC -->
-  <div class="header-wrapper" v-if="!inMobile">
+  <div
+    class="header-wrapper"
+    :class="{
+      'reader-floating-nav': readerFloatingNavMode,
+      'reader-floating-nav--hidden': readerFloatingNavMode && !readerFloatingNavVisible
+    }"
+    v-if="!inMobile"
+  >
     <div class="header-top">
       <div class="header-top-left">
         <!-- logo -->
@@ -322,11 +329,13 @@
       </div>
     </div>
   </div>
+  <!-- 阅读页顶栏固定后仍占位，避免滚动高度来回变化导致页面闪动 -->
+  <div class="header-floating-spacer" v-if="!inMobile && readerFloatingNavMode"></div>
 </template>
 
 <script lang="ts">
 import { computed, inject, reactive, ref, toRefs, watch } from "vue";
-import { useMyLocationHistory, useMyRouter, useSearchHistory } from "../utils/hooks";
+import { useMyLocationHistory, useMyRouter, useMyScroll, useSearchHistory } from "../utils/hooks";
 import { callLogin, callLoginOut } from "@/api/freelog";
 import { useStore } from "vuex";
 import { freelogApp } from "freelog-runtime";
@@ -341,6 +350,7 @@ export default {
     const nodeInfo = freelogApp.nodeInfo;
     const store = useStore();
     const { query, route, switchPage, routerBack } = useMyRouter();
+    const { scrollTop } = useMyScroll();
     const { searchHistory, searchWord, deleteWord, clearHistory } = useSearchHistory();
     const searchInput = ref();
     const searchHistoryPopup = ref();
@@ -386,6 +396,44 @@ export default {
     const locationHistory = computed(() => {
       return store.state.locationHistory;
     });
+
+    /** 阅读页 PC 顶栏始终固定并占位，只切换显隐，避免 position 切换改动滚动高度 */
+    const READER_FLOATING_NAV_THRESHOLD = 120;
+    const READER_FLOATING_SCROLL_DELTA = 4;
+    const readerFloatingNavVisible = ref(true);
+    let lastReaderScrollTop = 0;
+    let ignoreScrollUntil = 0;
+
+    const readerFloatingNavMode = computed(() => route.path === "/reader");
+
+    watch(
+      () => [route.path, scrollTop.value] as const,
+      ([path, top]) => {
+        if (path !== "/reader") {
+          readerFloatingNavVisible.value = true;
+          lastReaderScrollTop = top;
+          return;
+        }
+
+        const delta = top - lastReaderScrollTop;
+        lastReaderScrollTop = top;
+
+        if (Date.now() < ignoreScrollUntil) return;
+
+        if (top <= READER_FLOATING_NAV_THRESHOLD) {
+          readerFloatingNavVisible.value = true;
+          return;
+        }
+
+        if (Math.abs(delta) < READER_FLOATING_SCROLL_DELTA) return;
+
+        const nextVisible = delta < 0;
+        if (nextVisible === readerFloatingNavVisible.value) return;
+
+        readerFloatingNavVisible.value = nextVisible;
+        ignoreScrollUntil = Date.now() + 320;
+      }
+    );
 
     const methods = {
       /** 输入搜索词 */
@@ -544,7 +592,9 @@ export default {
       ...toRefs(data),
       ...methods,
       locationHistory,
-      menuBtnList
+      menuBtnList,
+      readerFloatingNavMode,
+      readerFloatingNavVisible
     };
   }
 };

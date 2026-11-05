@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState, useEffect, useCallback, useMemo } from "react";
+import React, { useContext, useRef, useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { freelogApp } from "freelog-runtime";
 import CSSTransition from "react-transition-group/CSSTransition";
@@ -53,36 +53,6 @@ export const ReaderScreen = (props: any) => {
   const widgetList = useRef<any>({});
   const collectionListRef = useRef<CollectionList[]>([]);
 
-  /** 获取小说信息 */
-  const getNovelInfo = useCallback(async () => {
-    setLoading(true);
-    const [exhibitInfo, statusInfo] = await Promise.all([
-      freelogApp.getExhibitById(id, { isLoadVersionProperty: 1 }),
-      freelogApp.getExhibitAuthStatus(id)
-    ]);
-
-    const { articleType } = exhibitInfo.data.data.articleInfo;
-    if (articleType === 1) {
-      // 更新微信分享
-      updateWxConfig(exhibitInfo.data.data as any);
-    }
-    if (articleType === 2) {
-      // 重置 ref 数据
-      collectionListRef.current = [];
-      setCollectionList([]);
-      await getCollectionList(true);
-      await getCollectionInfo();
-    }
-    getRecommendList();
-    setBook((pre: any) => {
-      return {
-        ...pre,
-        ...exhibitInfo.data.data,
-        defaulterIdentityType: statusInfo.data.data[0]?.defaulterIdentityType ?? null
-      };
-    });
-  }, [id]);
-
   // 获取合集下的单品列表
   const getCollectionList = useCallback(
     async (init = false, skipChapter = 0) => {
@@ -130,19 +100,18 @@ export const ReaderScreen = (props: any) => {
   );
 
   /** 获取推荐列表 */
-  const getRecommendList = async () => {
+  const getRecommendList = useCallback(async () => {
     const res = await (freelogApp as any).getExhibitRecommend(id, {
       recommendNorm: "sameAuthorAndType,sameTagAndType,sameType,latestCreate",
       size: 10
     });
     const { data: recommendData } = res.data;
-    // const sliceData = recommendData.slice(0, 5);
 
     setRecommendList(recommendData);
-  };
+  }, [id]);
 
   // 获取单品详细信息
-  const getCollectionInfo = async () => {
+  const getCollectionInfo = useCallback(async () => {
     const res = await (freelogApp as any).getCollectionSubById(id, { itemId: subId });
     const { sortId } = res.data.data;
 
@@ -165,7 +134,37 @@ export const ReaderScreen = (props: any) => {
       exhibitTitle: itemTitle
     };
     updateWxConfig(config);
-  };
+  }, [id, subId, getCollectionList]);
+
+  /** 获取小说信息 */
+  const getNovelInfo = useCallback(async () => {
+    setLoading(true);
+    const [exhibitInfo, statusInfo] = await Promise.all([
+      freelogApp.getExhibitById(id, { isLoadVersionProperty: 1 }),
+      freelogApp.getExhibitAuthStatus(id)
+    ]);
+
+    const { articleType } = exhibitInfo.data.data.articleInfo;
+    if (articleType === 1) {
+      // 更新微信分享
+      updateWxConfig(exhibitInfo.data.data as any);
+    }
+    if (articleType === 2) {
+      // 重置 ref 数据
+      collectionListRef.current = [];
+      setCollectionList([]);
+      await getCollectionList(true);
+      await getCollectionInfo();
+    }
+    getRecommendList();
+    setBook((pre: any) => {
+      return {
+        ...pre,
+        ...exhibitInfo.data.data,
+        defaulterIdentityType: statusInfo.data.data[0]?.defaulterIdentityType ?? null
+      };
+    });
+  }, [id, getCollectionList, getCollectionInfo, getRecommendList]);
 
   /** 加载分享插件 */
   const mountShareWidget = async () => {
@@ -262,8 +261,7 @@ export const ReaderScreen = (props: any) => {
 
   useEffect(() => {
     getNovelInfo();
-    // eslint-disable-next-line
-  }, [id]);
+  }, [getNovelInfo]);
 
   useEffect(() => {
     if (collection) {
@@ -300,7 +298,7 @@ export const ReaderScreen = (props: any) => {
         handleLastViewedHistory({ id, subId });
       }
     };
-  }, [location]);
+  }, [location, collection, getCollectionInfo]);
 
   useEffect(() => {
     setWidgetData("markdown", "fontSize", fontSize);
@@ -535,7 +533,7 @@ const ReaderBody = () => {
       widgetList.current.markdown.unmount();
       widgetList.current.markdown = null;
     }
-  }, [content]);
+  }, [content, widgetList]);
 
   if (loading || !book) {
     return <Loader />;

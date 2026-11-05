@@ -426,7 +426,14 @@ export default {
         input.select();
         document.execCommand("Copy");
         showToast("链接复制成功～");
-        // freelogApp.pushMessage4Task({ taskConfigCode: "TS000077", meta: { presentableId: data.articleData?.exhibitId } });
+        (freelogApp as any).pushMessage4Task({
+          taskConfigCode: "TS000077",
+          meta: { presentableId: data.articleData?.exhibitId }
+        });
+        (freelogApp as any).pushMessage4Task({
+          taskConfigCode: "T0004004",
+          meta: { presentableId: data.articleData?.exhibitId }
+        });
       },
 
       /** 获取授权 */
@@ -447,7 +454,8 @@ export default {
 
       /** 跳到标题位置 */
       jumpToTitle(title: string, index: number) {
-        document.getElementById("app")!.removeEventListener("scroll", methods.handleScroll);
+        const appEl = document.getElementById("app");
+        appEl?.removeEventListener("scroll", methods.handleScroll);
         data.currentTitle = title;
         data.currentIndex = index;
         const el: any = data.directoryList[index];
@@ -455,7 +463,7 @@ export default {
 
         scrollTo(el.offsetTop + 85);
         setTimeout(() => {
-          document.getElementById("app")!.addEventListener("scroll", methods.handleScroll);
+          appEl?.addEventListener("scroll", methods.handleScroll);
         }, 1000);
       },
 
@@ -661,7 +669,7 @@ export default {
         // widget_entry: "https://localhost:8202"
       };
       data.markdownWidget = await freelogApp.mountArticleWidget(params);
-      document.getElementById("app")!.addEventListener("scroll", methods.handleScroll);
+      document.getElementById("app")?.addEventListener("scroll", methods.handleScroll);
       data.timeId = setInterval(() => {
         const articleDoms =
           document.querySelector("#markdown-widget-app")?.children[0] &&
@@ -801,7 +809,7 @@ export default {
     onBeforeUnmount(async () => {
       await data.shareWidget?.unmount();
       await data.markdownWidget?.unmount();
-      document.getElementById("app")!.removeEventListener("scroll", methods.handleScroll);
+      document.getElementById("app")?.removeEventListener("scroll", methods.handleScroll);
     });
 
     getData();

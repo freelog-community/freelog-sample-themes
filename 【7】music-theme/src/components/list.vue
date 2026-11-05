@@ -60,7 +60,7 @@
       </div>
       <!-- 音乐 -->
       <div class="voice-list" v-if="tab === 1 && list.length && total !== 0">
-        <div class="voice-bar" v-if="!store.inMobile">
+        <div class="voice-bar" v-if="!store.inMobile && !isMusicTableList">
           <span>歌曲</span>
           <span>专辑</span>
           <span>时长</span>
@@ -154,33 +154,41 @@
       <div class="no-data-tip" v-if="noDataMessage">{{ noDataMessage }}</div>
     </template>
 
+    <!-- 音乐列表、专辑列表、歌单列表，其他列表 骨架图 -->
     <template v-else>
-      <el-skeleton class="pc-skeleton" animated v-if="!store.inMobile">
-        <template slot="template">
-          <div class="voice-skeleton" v-for="item in 5" :key="item">
-            <el-skeleton-item class="cover" variant="image" />
-            <div class="info-area">
-              <el-skeleton-item class="voice-title" variant="text" />
-              <el-skeleton-item class="voice-intro" variant="text" />
-              <el-skeleton-item class="voice-intro" variant="text" />
-              <el-skeleton-item class="voice-others" variant="text" />
+      <!-- 音乐列表骨架图 -->
+      <VoiceListSkeleton v-if="$route.name === 'voice-list'" />
+      <!-- 专辑列表、歌单列表骨架图 -->
+      <AlbumPlayListSkeleton v-else-if="['album-list', 'play-list'].includes($route.name)" />
+      <!-- 其他列表骨架图 -->
+      <template v-else>
+        <el-skeleton class="pc-skeleton" animated v-if="!store.inMobile">
+          <template slot="template">
+            <div class="voice-skeleton" v-for="item in 5" :key="item">
+              <el-skeleton-item class="cover" variant="image" />
+              <div class="info-area">
+                <el-skeleton-item class="voice-title" variant="text" />
+                <el-skeleton-item class="voice-intro" variant="text" />
+                <el-skeleton-item class="voice-intro" variant="text" />
+                <el-skeleton-item class="voice-others" variant="text" />
+              </div>
             </div>
-          </div>
-        </template>
-      </el-skeleton>
+          </template>
+        </el-skeleton>
 
-      <el-skeleton class="mobile-skeleton" animated v-else>
-        <template slot="template">
-          <div class="voice-skeleton" v-for="item in 4" :key="item">
-            <el-skeleton-item class="cover" variant="image" />
-            <div class="info-area">
-              <el-skeleton-item class="voice-title" variant="text" />
-              <el-skeleton-item class="voice-duration" variant="text" />
-              <el-skeleton-item class="voice-others" variant="text" />
+        <el-skeleton class="mobile-skeleton" animated v-else>
+          <template slot="template">
+            <div class="voice-skeleton" v-for="item in 4" :key="item">
+              <el-skeleton-item class="cover" variant="image" />
+              <div class="info-area">
+                <el-skeleton-item class="voice-title" variant="text" />
+                <el-skeleton-item class="voice-duration" variant="text" />
+                <el-skeleton-item class="voice-others" variant="text" />
+              </div>
             </div>
-          </div>
-        </template>
-      </el-skeleton>
+          </template>
+        </el-skeleton>
+      </template>
     </template>
   </div>
 </template>
@@ -191,6 +199,9 @@ import voice from "@/components/voice.vue";
 import PCAlbum from "@/components/album.vue";
 import MobileAlbum from "@/components/mobile-album.vue";
 import PCPlayList from "@/components/play-list.vue";
+import VoiceListSkeleton from "@/components/voice-list-skeleton.vue";
+import AlbumPlayListSkeleton from "@/components/album-play-list-skeleton.vue";
+import { MUSIC_TABLE_LIST_ROUTES } from "@/utils/common";
 
 const TabEnum = {
   Music: 1,
@@ -205,7 +216,9 @@ export default {
     voice,
     PCAlbum,
     MobileAlbum,
-    PCPlayList
+    PCPlayList,
+    VoiceListSkeleton,
+    AlbumPlayListSkeleton
   },
 
   props: {
@@ -281,6 +294,10 @@ export default {
   },
 
   computed: {
+    isMusicTableList() {
+      return MUSIC_TABLE_LIST_ROUTES.includes(this.$route.name);
+    },
+
     musicLength() {
       const data = this.list?.filter(i => i.articleInfo?.articleType === 1) || [];
       return data.length;
@@ -639,17 +656,17 @@ export default {
           }
 
           &:nth-child(2) {
-            width: 340px;
+            width: 260px;
           }
 
           &:nth-child(3) {
-            width: 120px;
+            width: 170px;
           }
         }
       }
 
       .voice-wrapper + .voice-wrapper {
-        margin-top: 25px;
+        margin-top: 20px;
       }
     }
 
@@ -829,7 +846,7 @@ export default {
       }
     }
 
-    ::v-deep .el-skeleton.is-animated .el-skeleton__item {
+    :deep(.el-skeleton.is-animated .el-skeleton__item) {
       background: linear-gradient(
           90deg,
           rgb(70, 70, 70) 25%,
@@ -880,7 +897,7 @@ export default {
       }
     }
 
-    ::v-deep .el-skeleton.is-animated .el-skeleton__item {
+    :deep(.el-skeleton.is-animated .el-skeleton__item) {
       background: linear-gradient(
           90deg,
           rgb(70, 70, 70) 25%,

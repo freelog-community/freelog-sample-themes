@@ -6,8 +6,6 @@ import { NewTags } from "../../components/tags/new-tags";
 import { Footer } from "../../components/footer/footer";
 import { ThemeEntrance } from "../../components/theme-entrance/theme-entrance";
 import { LoginBtn } from "../../components/login-btn/login-btn";
-import { showToast } from "../../components/toast/toast";
-
 import { CollectionList, ExhibitItem } from "../../api/interface";
 import { formatDate, getUrlParams, formatWordCount } from "../../utils/common";
 import { useMyHistory, useMyScroll, useMyShelf } from "../../utils/hooks";
@@ -176,7 +174,7 @@ export const DetailScreen = (props: any) => {
   );
 
   /** 获取合集的倒序内容 */
-  const getCollectionListBySortTypeDesc = async () => {
+  const getCollectionListBySortTypeDesc = useCallback(async () => {
     const res = await (freelogApp as any).getCollectionSubListByPage(id, {
       sortType: -1,
       skip: 0,
@@ -185,7 +183,7 @@ export const DetailScreen = (props: any) => {
     });
 
     setCollectionDataDesc(res.data.data);
-  };
+  }, [id]);
 
   // 最近更新的一话
   const latestNovelItem = useMemo(() => {
@@ -264,11 +262,10 @@ export const DetailScreen = (props: any) => {
         getCollectionList(true);
         // 目的：获取合集的倒序内容Add commentMore actions
         getCollectionListBySortTypeDesc();
+        const catalogueProperty = (exhibitInfo.data.data?.versionInfo?.exhibitProperty
+          ?.catalogueProperty || {}) as { collection_sort_list?: string };
         setSortOrder(
-          (novel?.versionInfo?.exhibitProperty?.catalogueProperty as any)?.collection_sort_list ===
-            "collection_sort_descending"
-            ? "desc"
-            : "asc"
+          catalogueProperty.collection_sort_list === "collection_sort_descending" ? "desc" : "asc"
         );
       }
 
@@ -284,24 +281,24 @@ export const DetailScreen = (props: any) => {
     } catch (error) {
       console.error("Failed to get novel info", error);
     }
-  }, [id]);
+  }, [id, getCollectionList, getCollectionListBySortTypeDesc]);
 
-  const getRecentDate = async () => {
-    const getRecentDate = await (freelogApp as any).getCollectionSubListByPage(id, {
+  const getRecentDate = useCallback(async () => {
+    const recentRes = await (freelogApp as any).getCollectionSubListByPage(id, {
       skip: skip.current,
       limit: 1,
       sortType: -1
     });
 
-    setCollectionRecentDate(getRecentDate.data.data?.dataList[0]?.createDate);
-  };
+    setCollectionRecentDate(recentRes.data.data?.dataList[0]?.createDate);
+  }, [id]);
 
   useEffect(() => {
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
     getRecentDate();
     getNovelInfo();
-  }, []);
+  }, [getNovelInfo, getRecentDate]);
 
   // 计算是否还有更多数据
   const hasMore = useMemo(() => {
@@ -344,7 +341,7 @@ const DetailBody = (props: {
   isLoadingMore: boolean;
 }) => {
   const { total, collectionRecentDate, isLoadingMore } = props;
-  const { inMobile, userData } = useContext(globalContext);
+  const { inMobile } = useContext(globalContext);
   const {
     novel,
     setNovel,
@@ -364,16 +361,6 @@ const DetailBody = (props: {
   const [introState, setIntroState] = useState(0);
   const [href, setHref] = useState("");
   // const [sortOrder, setSortOrder] = useState("asc");
-
-  /** 移动端分享 */
-  const share = () => {
-    // 复制链接
-    const input: any = document.getElementById("href");
-    input.select();
-    document.execCommand("Copy");
-    showToast("链接复制成功～");
-    // freelogApp.pushMessage4Task({ taskConfigCode: "TS000077", meta: { presentableId: novel.exhibitId } });
-  };
 
   /** 加载分享插件 */
   const mountShareWidget = async () => {
@@ -539,10 +526,10 @@ const DetailBody = (props: {
     if (collectionList && collectionList.length) {
       setNovel((pre: any) => ({
         ...pre,
-        collectionList: collectionList.sort(compare)
+        collectionList: [...collectionList].sort(compare)
       }));
     }
-  }, [sortOrder]);
+  }, [sortOrder, collectionList, setNovel]);
 
   useEffect(() => {
     setHref(freelogApp.getCurrentUrl());
@@ -755,7 +742,7 @@ const DetailBody = (props: {
                         ) : collectionItem.defaulterIdentityType === 4 ? (
                           <img className="sub-lock" src={Lock} alt="未授权" />
                         ) : (
-                          <img src={RightArrow} />
+                          <img src={RightArrow} alt="" />
                         )}
                       </div>
                     );
@@ -1054,7 +1041,7 @@ const DetailBody = (props: {
                         ) : collectionItem.defaulterIdentityType === 4 ? (
                           <img className="sub-lock" src={Lock} alt="未授权" />
                         ) : (
-                          inMobile && <img src={RightArrow} />
+                          inMobile && <img src={RightArrow} alt="" />
                         )}
                       </div>
                     );

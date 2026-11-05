@@ -149,7 +149,7 @@
         overflow: hidden;
         font-size: 14px;
         line-height: 20px;
-        color: var(--text-fourth-color);
+        color: var(--text-sixth-color);
         margin-top: 2px;
       }
 
@@ -347,13 +347,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 40px;
 
     &.unplayable {
       opacity: 0.4;
     }
 
     &:hover {
-      .left-box .btns-area {
+      .left-box .btns-area,
+      .voice-list-actions {
         opacity: 1;
 
         &.opacity {
@@ -363,7 +365,7 @@
     }
 
     .left-box {
-      width: 730px;
+      width: 640px;
       display: flex;
 
       .cover-area {
@@ -471,7 +473,7 @@
         justify-content: space-between;
         flex: 1;
         margin-left: 20px;
-        width: 330px;
+        width: 390px;
 
         &.flex-justify-center {
           justify-content: center;
@@ -560,7 +562,7 @@
         .intro {
           width: 100%;
           font-size: 12px;
-          color: var(--text-fourth-color);
+          color: var(--text-sixth-color);
           line-height: 18px;
           display: -webkit-box;
           -webkit-box-orient: vertical;
@@ -625,11 +627,18 @@
     }
 
     .middle-box {
-      width: 340px;
+      width: 170px;
       font-weight: 400;
       font-size: 12px;
       line-height: 18px;
-      color: var(--text-fourth-color);
+      color: var(--text-sixth-color);
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+
+      &.unknown-text {
+        color: var(--text-fourth-color);
+      }
 
       &.album {
         cursor: pointer;
@@ -641,17 +650,108 @@
     }
 
     .right-box {
-      width: 130px;
+      width: 180px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+
       .duration {
         font-size: 12px;
         font-weight: 400;
-        color: var(--text-fourth-color);
+        color: var(--text-sixth-color);
         flex-shrink: 0;
       }
 
       .recommend-duration {
+        text-align: right;
+        justify-content: flex-end;
+      }
+    }
+
+    &.voice-list-page {
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      gap: 40px;
+
+      .left-box {
+        width: 460px;
+        flex: 0 0 460px;
+        min-width: 0;
+
+        .info-area {
+          flex: 1;
+          min-width: 0;
+          width: auto;
+        }
+
+        .title-area {
+          min-width: 0;
+
+          :deep(.el-tooltip__trigger) {
+            display: block;
+            min-width: 0;
+            max-width: 100%;
+          }
+
+          .title {
+            display: block;
+            max-width: 100%;
+          }
+        }
+      }
+
+      .voice-list-actions {
+        flex: 0 0 140px;
+        width: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+
+        .text-btn {
+          font-size: 20px;
+          flex-shrink: 0;
+          margin-left: 0 !important;
+        }
+      }
+
+      &:hover .voice-list-actions {
+        opacity: 1;
+
+        &.opacity {
+          opacity: 0.4;
+        }
+      }
+
+      .singer.middle-box,
+      .middle-box:not(.singer) {
+        flex: 0 0 170px;
+        width: 170px;
+      }
+
+      .right-box {
+        flex: 0 0 180px;
+        width: 180px;
+        margin-left: auto;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+
+        .duration {
+          text-align: right;
+        }
+
+        :deep(.play-status) {
+          width: auto;
+          justify-content: flex-end;
+        }
+
+        .recommend-duration {
           text-align: right;
           justify-content: flex-end;
+        }
       }
     }
 

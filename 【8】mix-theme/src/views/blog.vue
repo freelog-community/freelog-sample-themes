@@ -414,7 +414,7 @@ onBeforeMount(() => {
 
       .filter {
         display: flex;
-        justify-content: end;
+        justify-content: flex-end;
 
         .freelog {
           font-size: 18px;

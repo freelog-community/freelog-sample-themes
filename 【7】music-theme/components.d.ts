@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Album: typeof import('./src/components/album.vue')['default']
+    AlbumPlayListSkeleton: typeof import('./src/components/album-play-list-skeleton.vue')['default']
     DetailFloatMenu: typeof import('./src/components/detail-float-menu.vue')['default']
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElProgress: typeof import('element-plus/es')['ElProgress']
@@ -22,6 +23,8 @@ declare module 'vue' {
     List: typeof import('./src/components/list.vue')['default']
     MobileAlbum: typeof import('./src/components/mobile-album.vue')['default']
     Player: typeof import('./src/components/player.vue')['default']
+    PlayerPlaylistSkeleton: typeof import('./src/components/player-playlist-skeleton.vue')['default']
+    PlayerV2: typeof import('./src/components/player-v2.vue')['default']
     PlayList: typeof import('./src/components/play-list.vue')['default']
     PlayStatus: typeof import('./src/components/play-status.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
@@ -30,6 +33,7 @@ declare module 'vue' {
     ThemeEntrance: typeof import('./src/components/theme-entrance.vue')['default']
     Tooltip: typeof import('./src/components/tooltip.vue')['default']
     Voice: typeof import('./src/components/voice.vue')['default']
+    VoiceListSkeleton: typeof import('./src/components/voice-list-skeleton.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

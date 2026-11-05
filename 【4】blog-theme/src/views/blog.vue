@@ -85,7 +85,7 @@ const availableListData = computed(() => {
   const baseFilter = (ele: any) =>
     ele.articleInfo.articleType === 1 &&
     ele.articleInfo.status === 1 &&
-    [0, 4].includes(ele.defaulterIdentityType!);
+    [0, 4].includes(ele.defaulterIdentityType ?? -1);
 
   // 先进行基础过滤
   const baseFilteredData = datasOfGetList.listData.value.filter(baseFilter);
@@ -415,7 +415,7 @@ onBeforeMount(() => {
 
       .filter {
         display: flex;
-        justify-content: end;
+        justify-content: flex-end;
 
         .freelog {
           font-size: 18px;

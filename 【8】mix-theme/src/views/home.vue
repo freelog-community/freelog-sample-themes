@@ -170,8 +170,11 @@
         </div>
       </template>
 
-      <div class="header" v-if="!searchData.keywords && listData?.length">
-        <div class="sort" :class="{ disabled: myLoading }">
+      <div
+        class="header"
+        v-if="!searchData.keywords && listData?.length && availableListData?.length"
+      >
+        <div class="sort" :class="{ disabled: myLoading }" v-if="availableListData?.length">
           <!-- {{ createDateSortType === "-1" ? "最近发布" : "最早发布" }}
           <i class="freelog fl-icon-zhankaigengduo"></i>
 
@@ -186,7 +189,7 @@
           最近发布
         </div>
 
-        <div class="blog-count">
+        <div class="blog-count" v-if="availableListData?.length >= 4">
           <!-- <span>博客总数{{ isAllLoaded ? availableListData?.length : "" }}</span> -->
           <span @click="switchPage('/blog')">查看全部</span>
         </div>
@@ -195,10 +198,16 @@
       <my-loader v-if="loading" />
 
       <template v-if="!loading">
-        <div class="article-list">
+        <div class="article-list" v-if="displayListData?.length">
           <my-article-v2 :data="item" v-for="item in displayListData" :key="item.exhibitId" />
         </div>
-        <div className="tip" v-show="total === 0 || availableListData?.length === 0">
+        <div
+          className="tip"
+          v-show="
+            total === 0 ||
+            (availableListData?.length === 0 && displayListCollectionData?.length === 0)
+          "
+        >
           当前节点暂无任何数据，请稍后查看
         </div>
         <!-- <div className="tip no-more" v-show="listData.length !== 0 && listData.length === total">
@@ -206,9 +215,13 @@
         </div> -->
       </template>
 
-      <div class="header-collection" v-if="displayListCollectionData?.length">
+      <div
+        class="header-collection"
+        :class="{ 'no-recent': !availableListData?.length }"
+        v-if="displayListCollectionData?.length"
+      >
         <span class="collection-title">连载 & 专栏</span>
-        <div class="collection-count">
+        <div class="collection-count" v-if="collectionsData?.length >= 4">
           <!-- <span>专栏总数{{ collectionsData?.length }}</span> -->
           <span @click="switchPage('/column')">查看全部</span>
         </div>
@@ -955,6 +968,9 @@ export default {
     }
 
     .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       font-size: 28px;
       line-height: 36px;
       padding: 40px 0px;
@@ -1010,18 +1026,18 @@ export default {
 
       .blog-count {
         font-weight: 400;
-        font-size: 12px;
+        font-size: 14px;
         color: #000000;
         line-height: 18px;
-        color: rgba(0, 0, 0, 0.4);
-        margin-top: 10px;
+        flex-shrink: 0;
+        color: rgba(34, 34, 34, 1);
 
         span:nth-child(1) {
           // margin-left: 10px;
           cursor: pointer;
 
           &:hover {
-            color: rgba(0, 0, 0, 1);
+            // color: rgba(0, 0, 0, 1);
           }
         }
       }
@@ -1030,7 +1046,7 @@ export default {
     .article-list {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 40px;
+      gap: 30px;
       margin-bottom: 80px;
     }
 
@@ -1050,7 +1066,16 @@ export default {
     }
 
     .header-collection {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 40px;
+
+      // 最近发布不渲染时，补上它原本的上间距（margin-top 40 + padding-top 40）
+      &.no-recent {
+        margin-top: 80px;
+      }
+
       .collection-title {
         font-weight: 600;
         font-size: 28px;
@@ -1060,17 +1085,17 @@ export default {
 
       .collection-count {
         font-weight: 400;
-        font-size: 12px;
-        color: rgba(0, 0, 0, 0.4);
+        font-size: 14px;
+        color: rgba(34, 34, 34, 1);
         line-height: 18px;
-        margin-top: 10px;
+        flex-shrink: 0;
 
         span:nth-child(1) {
           // margin-left: 10px;
           cursor: pointer;
 
           &:hover {
-            color: rgba(0, 0, 0, 1);
+            // color: rgba(0, 0, 0, 1);
           }
         }
       }

@@ -128,13 +128,13 @@ const menuBtnList = item => {
       icon: !ifSupportMime(item.versionInfo?.exhibitProperty?.mime)
         ? "fl-icon-wufabofang"
         : playing({ exhibitId: item.exhibitId, itemId: item.itemId })
-        ? "fl-icon-zanting-daibiankuang"
-        : "fl-icon-bofang-daibiankuang",
+          ? "fl-icon-zanting-daibiankuang"
+          : "fl-icon-bofang-daibiankuang",
       label: !ifSupportMime(item.versionInfo?.exhibitProperty?.mime)
         ? "无法播放"
         : playing({ exhibitId: item.exhibitId, itemId: item.itemId })
-        ? "暂停音乐"
-        : "播放音乐",
+          ? "暂停音乐"
+          : "播放音乐",
       operate: () => playOrPause(item),
       disabled: !ifSupportMime(item.versionInfo?.exhibitProperty?.mime)
     },
@@ -200,7 +200,7 @@ const isSelectedData = item => {
         v-for="(item, index) in props.data"
         :key="index"
       >
-        <div class="index">{{ changeIndex(index + 1) }}</div>
+        <!-- <div class="index">{{ changeIndex(index + 1) }}</div> -->
         <div class="info-box">
           <div class="cover-image">
             <img :src="item.coverImages[0]" alt="歌曲封面" />
@@ -260,7 +260,7 @@ const isSelectedData = item => {
                 alt="未授权"
                 v-else-if="item.defaulterIdentityType >= 4"
               ></i>
-              {{ item.exhibitTitle }}
+              <span class="title-text">{{ item.exhibitTitle }}</span>
             </span>
             <span
               class="desc"
@@ -288,7 +288,15 @@ const isSelectedData = item => {
             <myTooltip content="加入播放列表">
               <i
                 class="freelog text-btn"
-                :class="['fl-icon-jiarubofangliebiao', { disabled: useMyPlay.ifExist({exhibitId:item.exhibitId,itemId:item.itemId}) || (item.articleInfo.articleType === 1 && !ifSupportMime(item.versionInfo?.exhibitProperty?.mime as string)) }]"
+                :class="[
+                  'fl-icon-jiarubofangliebiao',
+                  {
+                    disabled:
+                      useMyPlay.ifExist({ exhibitId: item.exhibitId, itemId: item.itemId }) ||
+                      (item.articleInfo.articleType === 1 &&
+                        !ifSupportMime(item.versionInfo?.exhibitProperty?.mime as string))
+                  }
+                ]"
                 @click="addToPlayList({ exhibitId: item.exhibitId, itemId: item.itemId })"
               />
             </myTooltip>
@@ -302,23 +310,23 @@ const isSelectedData = item => {
 
             <div class="more-btns" v-if="showMore" @mouseleave="showMore = false">
               <div class="more-item" @click="share(item)">
-                <i class="freelog text-btn fl-icon-fenxiang" />
-                分享
+                <i class="freelog fl-icon-icon_fenxiang1" />
+                <span>分享</span>
               </div>
               <div class="more-item" @click="operateCollect(item)">
                 <i
-                  class="freelog text-btn"
+                  class="freelog"
                   :class="
                     useMyCollection.ifExist({ exhibitId: item.exhibitId, itemId: item.itemId })
                       ? 'fl-icon-shoucangxiaoshuoyishoucang'
                       : 'fl-icon-shoucangxiaoshuo'
                   "
                 />
-                {{
+                <span>{{
                   useMyCollection.ifExist({ exhibitId: item.exhibitId, itemId: item.itemId })
                     ? "取消收藏"
                     : "收藏"
-                }}
+                }}</span>
               </div>
             </div>
           </div>
@@ -381,7 +389,7 @@ const isSelectedData = item => {
                 @click.stop="getAuth(item)"
                 v-if="item.defaulterIdentityType >= 4"
               ></i>
-              {{ item.exhibitTitle }}
+              <span class="title-text">{{ item.exhibitTitle }}</span>
             </span>
             <span
               class="desc"
@@ -455,7 +463,7 @@ const isSelectedData = item => {
     justify-content: space-between;
 
     .title {
-      font-weight: 600;
+      font-weight: 400;
       font-size: 20px;
       color: var(--text-color);
       line-height: 28px;
@@ -465,7 +473,7 @@ const isSelectedData = item => {
     .more {
       display: flex;
       align-items: center;
-      font-weight: 600;
+      font-weight: 400;
       font-size: 14px;
       color: var(--text-color);
       opacity: 0.8;
@@ -494,7 +502,7 @@ const isSelectedData = item => {
     display: flex;
     flex-wrap: wrap;
     gap: 40px 30px;
-    margin-top: 40px;
+    margin-top: 30px;
 
     .content-item {
       display: flex;
@@ -527,7 +535,7 @@ const isSelectedData = item => {
           height: 70px;
           background: var(--bg-second-color);
           border-radius: 6px;
-          margin-right: 15px;
+          margin-right: 20px;
           overflow: hidden;
           cursor: pointer;
 
@@ -601,21 +609,27 @@ const isSelectedData = item => {
         .info {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 5px;
 
           .title {
             display: flex;
             align-items: center;
             width: 196px;
-            font-weight: 600;
+            min-width: 0;
+            font-weight: 400;
             font-size: 16px;
             color: var(--text-color);
             line-height: 22px;
             opacity: 0.8;
             cursor: pointer;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
+
+            .title-text {
+              flex: 1;
+              min-width: 0;
+              overflow: hidden;
+              white-space: nowrap;
+              text-overflow: ellipsis;
+            }
 
             &:hover {
               color: #44d7b6;
@@ -657,22 +671,33 @@ const isSelectedData = item => {
           }
 
           .desc {
+            display: block;
             width: 196px;
+            max-width: 100%;
+            min-width: 0;
             font-weight: 400;
             font-size: 12px;
             color: var(--text-color);
             line-height: 18px;
             overflow: hidden;
             white-space: nowrap;
+            opacity: 0.4;
             text-overflow: ellipsis;
           }
 
           .type {
+            display: block;
+            width: 196px;
+            max-width: 100%;
+            min-width: 0;
             font-weight: 400;
             font-size: 12px;
             color: var(--text-color);
             line-height: 18px;
             opacity: 0.4;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
 
             &.album {
               cursor: pointer;
@@ -708,33 +733,57 @@ const isSelectedData = item => {
             position: absolute;
             right: 0;
             top: 14px;
-            width: 91px;
-            height: 100px;
-            background: var(--bg-color);
-            box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.2);
-            border-radius: 4px;
-            backdrop-filter: blur(25px);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 5px;
+            background: var(--text-reverse-color);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
             overflow: hidden;
             z-index: 99;
 
             .more-item {
-              height: 50px;
               display: flex;
-              justify-content: center;
               align-items: center;
+              gap: 10px;
+              padding: 10px 20px;
+              border-radius: 5px;
               cursor: pointer;
-              color: var(--text-color);
+              font-size: 14px;
+              line-height: 20px;
+              color: var(--text-eighth-color);
+              white-space: nowrap;
+              transition: background-color 0.2s linear;
+
+              .freelog {
+                flex-shrink: 0;
+                font-size: 16px;
+                color: var(--text-eighth-color);
+              }
+
+              .fl-icon-shoucangxiaoshuo,
+              .fl-icon-shoucangxiaoshuoyishoucang {
+                font-size: 20px;
+              }
 
               &:hover {
                 background: #44d7b6;
+                color: var(--text-color);
+
+                .freelog {
+                  color: var(--text-color);
+                }
               }
 
-              .text-btn {
-                margin-left: 0;
-                margin-right: 5px;
-                &:hover {
+              &:active {
+                background: #44d7b6;
+                color: var(--text-color);
+
+                .freelog {
                   color: var(--text-color);
-                  opacity: 0.8;
                 }
               }
             }
@@ -768,7 +817,7 @@ const isSelectedData = item => {
     justify-content: space-between;
 
     .title {
-      font-weight: 600;
+      font-weight: 400;
       font-size: 20px;
       color: var(--text-color);
       line-height: 28px;
@@ -778,7 +827,7 @@ const isSelectedData = item => {
     .more {
       display: flex;
       align-items: center;
-      font-weight: 600;
+      font-weight: 400;
       font-size: 14px;
       color: var(--text-color);
       opacity: 0.8;
@@ -808,7 +857,7 @@ const isSelectedData = item => {
     flex-direction: column;
     flex-wrap: wrap;
     gap: 15px 0;
-    margin-top: 40px;
+    margin-top: 30px;
 
     .content-item {
       display: flex;
@@ -844,15 +893,21 @@ const isSelectedData = item => {
             display: flex;
             align-items: center;
             width: 196px;
+            min-width: 0;
             font-weight: 600;
             font-size: 16px;
             color: var(--text-color);
             line-height: 22px;
             opacity: 0.8;
             cursor: pointer;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
+
+            .title-text {
+              flex: 1;
+              min-width: 0;
+              overflow: hidden;
+              white-space: nowrap;
+              text-overflow: ellipsis;
+            }
 
             &:hover {
               // color: #44d7b6;
@@ -894,22 +949,33 @@ const isSelectedData = item => {
           }
 
           .desc {
+            display: block;
             width: 196px;
+            max-width: 100%;
+            min-width: 0;
             font-weight: 400;
             font-size: 12px;
             color: var(--text-color);
             line-height: 18px;
             overflow: hidden;
             white-space: nowrap;
+            opacity: 0.4;
             text-overflow: ellipsis;
           }
 
           .type {
+            display: block;
+            width: 196px;
+            max-width: 100%;
+            min-width: 0;
             font-weight: 400;
             font-size: 12px;
             color: var(--text-color);
             line-height: 18px;
             opacity: 0.4;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
 
             &.album {
               cursor: pointer;

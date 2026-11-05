@@ -68,11 +68,11 @@
           </div>
 
           <div class="recommend" :class="{ 'pc-recommend': !inMobile }" v-if="recommendList.length">
+            <div class="recommend-divider" v-if="!inMobile"></div>
             <div class="recommend-header">
               <div class="recommend-title">相关推荐</div>
-              <div class="text-btn" @click="switchPage('/')">更多>></div>
+              <span class="recommend-more" @click="switchPage('/')">查看全部</span>
             </div>
-            <div class="divider"></div>
             <div class="article-list" :class="{ 'in-mobile': inMobile, 'in-pc': !inMobile }">
               <my-article-v2 :data="item" v-for="item in recommendList" :key="item.exhibitId" />
             </div>
@@ -173,7 +173,7 @@
               @mouseleave.stop="setShareWidgetShow(false)"
             >
               <span class="share-btn-text" :class="{ active: shareShow }">
-                <i class="freelog fl-icon-fenxiang"></i>分享
+                <i class="freelog fl-icon-icon_fenxiang1"></i>分享
               </span>
 
               <div id="share" class="share-wrapper" />
@@ -228,6 +228,7 @@
               <div class="markdown-area" v-if="articleData?.defaulterIdentityType === 0">
                 <div
                   class="markdown-wrapper"
+                  ref="markdownWrapperRef"
                   :class="{ withoutCategory: directoryList.length === 0 }"
                 >
                   <div class="divider"></div>
@@ -322,15 +323,27 @@
         </div>
 
         <div class="recommend pc-recommend" v-if="recommendList.length">
+          <div class="recommend-divider"></div>
           <div class="recommend-header">
             <div class="recommend-title">相关推荐</div>
-            <div class="text-btn" @click="switchPage('/')">更多>></div>
+            <span class="recommend-more" @click="switchPage('/')">查看全部</span>
           </div>
-          <div class="divider"></div>
           <div class="article-list">
             <my-article-v2 :data="item" v-for="item in recommendList" :key="item.exhibitId" />
           </div>
         </div>
+      </div>
+
+      <div
+        class="reader-fixed-btns"
+        v-if="!inMobile && !contentLoading && articleData?.defaulterIdentityType === 0"
+        :style="backTopPositionStyle"
+      >
+        <back-top>
+          <div class="back-top-btn">
+            <i class="freelog fl-icon-huidaodingbu"></i>
+          </div>
+        </back-top>
       </div>
     </div>
   </div>
@@ -341,7 +354,9 @@ import {
   defineAsyncComponent,
   nextTick,
   onBeforeUnmount,
+  onMounted,
   reactive,
+  ref,
   toRefs,
   watch,
   computed
@@ -360,7 +375,8 @@ export default {
   components: {
     tags: defineAsyncComponent(() => import("../components/tags.vue")),
     "my-article-v2": defineAsyncComponent(() => import("../components/article-v2.vue")),
-    "my-loader": defineAsyncComponent(() => import("../components/loader.vue"))
+    "my-loader": defineAsyncComponent(() => import("../components/loader.vue")),
+    "back-top": defineAsyncComponent(() => import("../components/back-top.vue"))
   },
 
   setup() {
@@ -369,6 +385,32 @@ export default {
     const datasOfGetList = useGetList();
     const { scrollTo } = useMyScroll();
     console.log("query", query.value);
+
+    const markdownWrapperRef = ref<HTMLElement | null>(null);
+    const backTopLeft = ref<number | null>(null);
+    const BACK_TOP_GAP_ABOVE_FOOTER = 30;
+    const BACK_TOP_GAP_FROM_TEXT_RIGHT = 30;
+    let markdownResizeObserver: { disconnect(): void } | null = null;
+
+    const backTopPositionStyle = computed(() => {
+      if (backTopLeft.value == null) {
+        return { visibility: "hidden" as const };
+      }
+      return {
+        left: `${backTopLeft.value}px`,
+        bottom: `${BACK_TOP_GAP_ABOVE_FOOTER}px`,
+        visibility: "visible" as const
+      };
+    });
+
+    const updateBackTopPosition = () => {
+      if (store.state.inMobile || !markdownWrapperRef.value) {
+        backTopLeft.value = null;
+        return;
+      }
+      const rect = markdownWrapperRef.value.getBoundingClientRect();
+      backTopLeft.value = rect.right + BACK_TOP_GAP_FROM_TEXT_RIGHT;
+    };
 
     const data = reactive({
       contentLoading: false,
@@ -426,7 +468,14 @@ export default {
         input.select();
         document.execCommand("Copy");
         showToast("链接复制成功～");
-        // freelogApp.pushMessage4Task({ taskConfigCode: "TS000077", meta: { presentableId: data.articleData?.exhibitId } });
+        (freelogApp as any).pushMessage4Task({
+          taskConfigCode: "TS000077",
+          meta: { presentableId: data.articleData?.exhibitId }
+        });
+        (freelogApp as any).pushMessage4Task({
+          taskConfigCode: "T0004004",
+          meta: { presentableId: data.articleData?.exhibitId }
+        });
       },
 
       /** 获取授权 */
@@ -447,7 +496,8 @@ export default {
 
       /** 跳到标题位置 */
       jumpToTitle(title: string, index: number) {
-        document.getElementById("app")!.removeEventListener("scroll", methods.handleScroll);
+        const appEl = document.getElementById("app");
+        appEl?.removeEventListener("scroll", methods.handleScroll);
         data.currentTitle = title;
         data.currentIndex = index;
         const el: any = data.directoryList[index];
@@ -455,7 +505,7 @@ export default {
 
         scrollTo(el.offsetTop + 85);
         setTimeout(() => {
-          document.getElementById("app")!.addEventListener("scroll", methods.handleScroll);
+          appEl?.addEventListener("scroll", methods.handleScroll);
         }, 1000);
       },
 
@@ -661,7 +711,7 @@ export default {
         // widget_entry: "https://localhost:8202"
       };
       data.markdownWidget = await freelogApp.mountArticleWidget(params);
-      document.getElementById("app")!.addEventListener("scroll", methods.handleScroll);
+      document.getElementById("app")?.addEventListener("scroll", methods.handleScroll);
       data.timeId = setInterval(() => {
         const articleDoms =
           document.querySelector("#markdown-widget-app")?.children[0] &&
@@ -798,10 +848,39 @@ export default {
       }
     );
 
+    watch(
+      () => [data.contentLoading, data.directoryList.length] as const,
+      () => {
+        nextTick(() => updateBackTopPosition());
+      }
+    );
+
+    watch(markdownWrapperRef, el => {
+      markdownResizeObserver?.disconnect();
+      markdownResizeObserver = null;
+      if (el && (window as any).ResizeObserver) {
+        const observer = new (window as any).ResizeObserver(() => updateBackTopPosition());
+        observer.observe(el);
+        markdownResizeObserver = observer;
+        nextTick(() => updateBackTopPosition());
+      }
+    });
+
+    onMounted(() => {
+      window.addEventListener("resize", updateBackTopPosition);
+      document.getElementById("app")?.addEventListener("scroll", updateBackTopPosition, {
+        passive: true
+      });
+      nextTick(() => updateBackTopPosition());
+    });
+
     onBeforeUnmount(async () => {
+      markdownResizeObserver?.disconnect();
+      window.removeEventListener("resize", updateBackTopPosition);
+      document.getElementById("app")?.removeEventListener("scroll", updateBackTopPosition);
       await data.shareWidget?.unmount();
       await data.markdownWidget?.unmount();
-      document.getElementById("app")!.removeEventListener("scroll", methods.handleScroll);
+      document.getElementById("app")?.removeEventListener("scroll", methods.handleScroll);
     });
 
     getData();
@@ -818,7 +897,9 @@ export default {
       userData,
       errorMsg,
       prevArticle,
-      nextArticle
+      nextArticle,
+      markdownWrapperRef,
+      backTopPositionStyle
     };
   }
 };
@@ -1037,7 +1118,7 @@ export default {
 
       .recommend-title {
         font-size: 16px;
-        font-weight: 600;
+        font-weight: 400;
         color: #222222;
         line-height: 22px;
         margin-bottom: 30px;
@@ -1058,24 +1139,29 @@ export default {
 
   // PC
   .reader-body {
-    width: 965px;
+    width: 1080px;
     margin: 0 auto;
 
     .article-cover {
-      width: 965px;
-      height: 654px;
+      width: 1080px;
+      height: 730px;
 
       img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        border-radius: 10px;
       }
+    }
+
+    &:has(.pc-recommend) .article-card {
+      margin-bottom: 0;
     }
 
     .article-card {
       width: 100%;
       box-sizing: border-box;
-      padding-top: 50px;
+      padding-top: 40px;
       margin-bottom: 100px;
 
       .title-share {
@@ -1106,6 +1192,10 @@ export default {
             line-height: 20px;
             color: #222;
             transition: all 0.2s linear;
+            display: flex;
+            align-items: center;
+            border-radius: 10px;
+            border: 1px solid #222;
 
             &:hover,
             &.active {
@@ -1116,8 +1206,9 @@ export default {
               opacity: 0.6;
             }
 
-            .fl-icon-fenxiang {
-              margin-right: 6px;
+            .fl-icon-fenxiang,
+            .fl-icon-icon_fenxiang1 {
+              margin-right: 5px;
             }
           }
 
@@ -1132,7 +1223,7 @@ export default {
 
       .other-info {
         height: 24px;
-        margin-top: 12px;
+        margin-top: 15px;
         display: flex;
         align-items: center;
 
@@ -1220,7 +1311,7 @@ export default {
           display: flex;
 
           .divider {
-            margin: 30px 0px;
+            margin: 40px 0px;
             height: 1px;
             background-color: rgba(0, 0, 0, 0.1);
           }
@@ -1375,27 +1466,39 @@ export default {
     }
 
     .recommend {
-      .divider {
-        height: 1px;
-        background: rgba(0, 0, 0, 0.1);
-        margin-top: 15px;
+      &.pc-recommend {
+        margin-top: 40px;
+
+        .recommend-divider {
+          height: 1px;
+          background: rgba(0, 0, 0, 0.1);
+        }
+
+        .recommend-header {
+          margin-top: 40px;
+        }
       }
 
       .recommend-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        margin-bottom: 40px;
 
         .recommend-title {
-          font-size: 14px;
-          font-weight: 600;
+          font-weight: 400;
+          font-size: 28px;
           color: #222222;
-          line-height: 20px;
+          line-height: 34px;
         }
 
-        .text-btn {
+        .recommend-more {
+          flex-shrink: 0;
+          font-weight: 400;
           font-size: 14px;
-          line-height: 20px;
+          color: rgba(34, 34, 34, 1);
+          line-height: 18px;
+          cursor: pointer;
         }
       }
 
@@ -1403,12 +1506,34 @@ export default {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 40px;
-        margin-top: 40px;
+        margin-top: 0;
         margin-bottom: 40px;
+      }
+    }
+  }
 
-        .article-wrapper:first-child {
-          border-top: 1px solid rgba(0, 0, 0, 0.1);
-        }
+  .reader-fixed-btns {
+    position: fixed;
+    z-index: 20;
+
+    .back-top-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #222;
+      background: #f2f2f2;
+      box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+
+      &:hover {
+        background: #e8e8e8;
+      }
+
+      .freelog {
+        font-size: 18px;
       }
     }
   }
@@ -1417,6 +1542,10 @@ export default {
     &.in-pc {
       width: 965px;
       margin: 0 auto;
+
+      .pre-next-recommend:not(:has(.pc-recommend)) {
+        margin-bottom: 100px;
+      }
     }
 
     .detail-weigui-container {
@@ -1432,7 +1561,12 @@ export default {
         height: 348px;
 
         .weigui-icon {
+          display: block;
+          width: 1em;
+          height: 1em;
           font-size: 220px;
+          line-height: 1;
+          text-align: center;
           opacity: 0.4;
         }
 
@@ -1464,24 +1598,23 @@ export default {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          margin-bottom: 30px;
 
           .recommend-title {
-            font-size: 16px;
-            font-weight: 600;
+            font-weight: 400;
+            font-size: 28px;
             color: #222222;
-            line-height: 22px;
+            line-height: 34px;
           }
 
-          .text-btn {
+          .recommend-more {
+            flex-shrink: 0;
+            font-weight: 400;
             font-size: 14px;
-            line-height: 20px;
+            color: rgba(34, 34, 34, 1);
+            line-height: 18px;
+            cursor: pointer;
           }
-        }
-
-        .divider {
-          height: 1px;
-          background: rgba(0, 0, 0, 0.1);
-          margin-top: 15px;
         }
 
         .article-list {
@@ -1505,7 +1638,7 @@ export default {
 
         .recommend-title {
           font-size: 16px;
-          font-weight: 600;
+          font-weight: 400;
           color: #222222;
           line-height: 22px;
           margin-bottom: 30px;
@@ -1642,28 +1775,44 @@ export default {
 
 .recommend.pc-recommend {
   width: 100%;
-  // padding: 30px 20px;
-  // box-sizing: border-box;
+  margin-top: 40px;
   background-color: #fff;
 
-  .recommend-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #222222;
-    line-height: 22px;
-    // margin-bottom: 30px;
+  .recommend-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .recommend-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 40px;
+    margin-bottom: 40px;
+
+    .recommend-title {
+      font-weight: 400;
+      font-size: 28px;
+      color: #222222;
+      line-height: 34px;
+    }
+
+    .recommend-more {
+      flex-shrink: 0;
+      font-weight: 400;
+      font-size: 14px;
+      color: rgba(34, 34, 34, 1);
+      line-height: 18px;
+      cursor: pointer;
+    }
   }
 
   .article-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 40px;
-    margin-top: 40px;
+    margin-top: 0;
     margin-bottom: 40px;
-
-    .article-wrapper:first-child {
-      border-top: 1px solid rgba(0, 0, 0, 0.1);
-    }
   }
 }
 </style>

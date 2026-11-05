@@ -47,10 +47,10 @@ onMounted(() => {
   <div
     class="pc-home-banner-wrap"
     v-if="!store.inMobile"
-    :style="{ marginTop: store.nodeInfo.nodeLogo ? '-158px' : '-98px' }"
+    :style="{ marginTop: store.nodeInfo.nodeLogo ? '-160px' : '-98px' }"
   >
     <!-- 节点封面 -->
-    <div class="node-banner" :class="nodeInfo.coverImage && 'background-shadow'">
+    <div class="node-banner background-shadow">
       <img :src="currentBanner" alt="节点封面" />
     </div>
 
@@ -58,7 +58,7 @@ onMounted(() => {
     <div
       class="node-info"
       :style="{
-        height: store.nodeInfo.nodeLogo ? ` calc(100% - 158px)` : `calc(100% - 98px)`
+        height: store.nodeInfo.nodeLogo ? ` calc(100% - 160px)` : `calc(100% - 98px)`
       }"
     >
       <div class="avatar" v-if="selfConfig.options_node_logo">
@@ -87,7 +87,7 @@ onMounted(() => {
     </div>
 
     <!-- 节点信息 -->
-    <div class="node-info">
+    <div class="node-info" :class="!selfConfig.options_node_logo && 'no-avatar'">
       <div class="avatar" v-if="selfConfig.options_node_logo">
         <img :src="selfConfig.options_node_logo" alt="avatar" />
       </div>
@@ -147,6 +147,7 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    max-width: 1280px;
 
     .avatar {
       width: 170px;
@@ -154,6 +155,7 @@ onMounted(() => {
       border-radius: 50%;
       background-color: #d8d8d8;
       overflow: hidden;
+      margin-bottom: 30px;
 
       img {
         width: 100%;
@@ -164,7 +166,6 @@ onMounted(() => {
 
     .node-name {
       width: 1280px;
-      padding-top: 20px;
       height: 60px;
       font-weight: 600;
       font-size: 40px;
@@ -177,7 +178,7 @@ onMounted(() => {
     }
 
     .node-desc-box {
-      padding: 20px 0;
+      padding: 30px 0;
       .node-desc {
         white-space: pre-wrap;
         opacity: 0.6;
@@ -226,6 +227,10 @@ onMounted(() => {
   .node-info {
     margin-top: -50px;
     padding: 0 15px;
+
+    &.no-avatar {
+      margin-top: 5px;
+    }
 
     .avatar {
       width: 100px;

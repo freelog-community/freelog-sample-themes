@@ -10,6 +10,26 @@ import { globalContext } from "../../router";
 import { showToast } from "../toast/toast";
 import { formatWordCount } from "../../utils/common";
 
+const getExhibitWordCount = (item: ExhibitItem): number | undefined => {
+  const versionProp = item?.versionInfo?.exhibitProperty as Record<string, unknown> | undefined;
+  // 展品上的作品信息类型未声明 articleProperty，合集单品接口仍会返回该字段
+  const articleProp = (item?.articleInfo as { articleProperty?: Record<string, unknown> } | undefined)
+    ?.articleProperty;
+  const value =
+    versionProp?.wordCount ??
+    articleProp?.wordCount ??
+    versionProp?.word_count ??
+    articleProp?.word_count;
+  return typeof value === "number" ? value : undefined;
+};
+
+const getCollectionWordCount = (item: ExhibitItem): number | undefined => {
+  const versionProp = item?.versionInfo?.exhibitProperty as Record<string, unknown> | undefined;
+  const collectionCount = versionProp?.collection_word_count;
+  if (typeof collectionCount === "number") return collectionCount;
+  return getExhibitWordCount(item);
+};
+
 /** 小说组件 */
 export const Novel = (props: {
   mode?: number; // 1-首页默认样式 2-书架样式 3-签约记录样式 4-移动端首页书架样式
@@ -150,23 +170,18 @@ export const Novel = (props: {
               {data.articleInfo?.articleType === 1 ? (
                 <div className="detail-latest-box">
                   <div className="single">单本</div>
-                  {data?.versionInfo?.exhibitProperty?.wordCount && (
+                  {getExhibitWordCount(data) != null && (
                     <div className="word-count">
-                      {formatWordCount((data?.versionInfo as any)?.exhibitProperty?.wordCount) +
-                        "字"}
+                      {formatWordCount(getExhibitWordCount(data)!) + "字"}
                     </div>
                   )}
                 </div>
               ) : (data.articleInfo as any)?.serializeStatus === 0 ? (
                 <div className="detail-latest-box">
                   <div className="on-going">连载中</div>
-                  {(data?.versionInfo?.exhibitProperty?.collection_word_count ||
-                    data?.versionInfo?.exhibitProperty?.wordCount) && (
+                  {getCollectionWordCount(data) != null && (
                     <div className="word-count">
-                      {formatWordCount(
-                        (data?.versionInfo as any)?.exhibitProperty?.collection_word_count ||
-                          (data?.versionInfo as any)?.exhibitProperty?.wordCount
-                      ) + "字"}
+                      {formatWordCount(getCollectionWordCount(data)!) + "字"}
                     </div>
                   )}
                   <div
@@ -187,13 +202,9 @@ export const Novel = (props: {
               ) : (data.articleInfo as any)?.serializeStatus === 1 ? (
                 <div className="detail-latest-box">
                   <div className="completed">已完结</div>
-                  {(data?.versionInfo?.exhibitProperty?.collection_word_count ||
-                    data?.versionInfo?.exhibitProperty?.wordCount) && (
+                  {getCollectionWordCount(data) != null && (
                     <div className="word-count">
-                      {formatWordCount(
-                        (data?.versionInfo as any)?.exhibitProperty?.collection_word_count ||
-                          (data?.versionInfo as any)?.exhibitProperty?.wordCount
-                      ) + "字"}
+                      {formatWordCount(getCollectionWordCount(data)!) + "字"}
                     </div>
                   )}
                   <div

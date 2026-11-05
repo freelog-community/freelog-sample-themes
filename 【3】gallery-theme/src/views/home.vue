@@ -383,7 +383,7 @@ export default {
           return;
         }
 
-        if (![0, 4].includes(item.defaulterIdentityType!)) {
+        if (![0, 4].includes(defaulterIdentityType)) {
           showToast("作品异常，无法访问");
           return;
         }
@@ -619,7 +619,7 @@ export default {
 
     .filter {
       display: flex;
-      justify-content: end;
+      justify-content: flex-end;
       margin: 15px 0 30px;
 
       .freelog {

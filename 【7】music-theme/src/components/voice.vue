@@ -149,7 +149,8 @@
           !ifSupportMime ||
           authLinkAbnormal ||
           data.onlineStatus === 0 ||
-          data.articleInfo.status === 2
+          data.articleInfo.status === 2,
+        'voice-list-page': isMusicTableList
       }"
       :title="
         !ifSupportMime ||
@@ -200,7 +201,10 @@
         </div>
         <div
           class="info-area"
-          :class="!data.versionInfo?.exhibitProperty?.display_artist && 'flex-justify-center'"
+          :class="
+            (isMusicTableList || !data.versionInfo?.exhibitProperty?.display_artist) &&
+              'flex-justify-center'
+          "
         >
           <div class="title-area">
             <img
@@ -240,11 +244,19 @@
               </span>
             </myTooltip>
           </div>
-          <div class="intro" :class="{ 'opacity-40': authLinkAbnormal }">
+          <div
+            class="intro"
+            :class="{ 'opacity-40': authLinkAbnormal }"
+            v-if="!isMusicTableList"
+          >
             {{ data?.versionInfo?.exhibitProperty?.display_artist }}
           </div>
         </div>
-        <div class="btns-area" :class="{ opacity: authLinkAbnormal }">
+        <div
+          class="btns-area"
+          :class="{ opacity: authLinkAbnormal }"
+          v-if="!isMusicTableList"
+        >
           <myTooltip :content="item.title" v-for="item in btnList" :key="item.title">
             <i
               class="freelog text-btn"
@@ -255,17 +267,37 @@
         </div>
       </div>
       <div
+        class="btns-area voice-list-actions"
+        :class="{ opacity: authLinkAbnormal }"
+        v-if="isMusicTableList"
+      >
+        <myTooltip :content="item.title" v-for="item in btnList" :key="item.title">
+          <i
+            class="freelog text-btn"
+            :class="[item.icon, { disabled: item.disabled }]"
+            @click="item.operate"
+          />
+        </myTooltip>
+      </div>
+      <div
+        class="singer middle-box"
+        :class="{ 'unknown-text': !itemArtist }"
+        v-if="isMusicTableList"
+      >
+        {{ itemArtist || "未知" }}
+      </div>
+      <div
         class="middle-box"
-        :class="data.albumName && 'album'"
+        :class="{ 'unknown-text': !itemAlbum, album: data.albumName }"
         @click="
           data.albumName &&
-            $router.myPush({
-              path: data.parentArticleType === 3 ? '/play-detail' : '/detail',
-              query: { id: data.exhibitId }
-            })
+          $router.myPush({
+            path: data.parentArticleType === 3 ? '/play-detail' : '/detail',
+            query: { id: data.exhibitId }
+          })
         "
       >
-        {{ data.albumName || "-" }}
+        {{ itemAlbum || "未知" }}
       </div>
       <div class="right-box">
         <play-status
@@ -302,7 +334,7 @@
 import playStatus from "@/components/play-status.vue";
 import myTooltip from "@/components/tooltip.vue";
 import { useMyAuth, useMyCollection, useMyPlay } from "@/utils/hooks";
-import { secondsToHMS, absoluteTime } from "@/utils/common";
+import { secondsToHMS, absoluteTime, MUSIC_TABLE_LIST_ROUTES } from "@/utils/common";
 import { useGlobalStore } from "@/store/global";
 
 export default {
@@ -395,6 +427,35 @@ export default {
       return supportMimeList.includes(this.data.versionInfo?.exhibitProperty?.mime);
     },
 
+    isMusicTableList() {
+      if (this.store.inMobile) {
+        return MUSIC_TABLE_LIST_ROUTES.includes(this.$route.name);
+      }
+      return (
+        MUSIC_TABLE_LIST_ROUTES.includes(this.$route.name) || this.isVoiceRecommend
+      );
+    },
+
+    itemArtist() {
+      const d = this.data;
+      return (
+        d?.versionInfo?.exhibitProperty?.display_artist ||
+        d?.articleInfo?.articleProperty?.display_artist ||
+        d?.articleInfo?.articleOwnerName ||
+        ""
+      );
+    },
+
+    itemAlbum() {
+      const d = this.data;
+      return (
+        d?.albumName ||
+        d?.versionInfo?.exhibitProperty?.album_name ||
+        d?.articleInfo?.articleProperty?.album_name ||
+        ""
+      );
+    },
+
     /** 是否播放中 */
     playing() {
       const { playing, playingInfo } = this.store;
@@ -419,8 +480,8 @@ export default {
             this.data.articleInfo.status === 2
               ? "fl-icon-wufabofang"
               : this.playing
-              ? "fl-icon-zanting-daibiankuang"
-              : "fl-icon-bofang-daibiankuang",
+                ? "fl-icon-zanting-daibiankuang"
+                : "fl-icon-bofang-daibiankuang",
           title:
             !this.ifSupportMime ||
             this.authLinkAbnormal ||
@@ -428,8 +489,8 @@ export default {
             this.data.articleInfo.status === 2
               ? "无法播放"
               : this.playing
-              ? "暂停"
-              : "播放",
+                ? "暂停"
+                : "播放",
           operate: this.playOrPause,
           disabled:
             !this.ifSupportMime ||
@@ -463,8 +524,8 @@ export default {
             this.data.articleInfo.status === 2
               ? "fl-icon-wufabofang"
               : this.playing
-              ? "fl-icon-zanting-daibiankuang"
-              : "fl-icon-bofang-daibiankuang",
+                ? "fl-icon-zanting-daibiankuang"
+                : "fl-icon-bofang-daibiankuang",
           label: !this.ifSupportMime ? "无法播放" : this.playing ? "暂停音乐" : "播放音乐",
           operate: this.playOrPause,
           disabled:
