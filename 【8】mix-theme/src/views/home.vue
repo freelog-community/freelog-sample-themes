@@ -215,7 +215,11 @@
         </div> -->
       </template>
 
-      <div class="header-collection" v-if="displayListCollectionData?.length">
+      <div
+        class="header-collection"
+        :class="{ 'no-recent': !availableListData?.length }"
+        v-if="displayListCollectionData?.length"
+      >
         <span class="collection-title">连载 & 专栏</span>
         <div class="collection-count" v-if="collectionsData?.length >= 4">
           <!-- <span>专栏总数{{ collectionsData?.length }}</span> -->
@@ -1066,6 +1070,11 @@ export default {
       align-items: center;
       justify-content: space-between;
       margin-bottom: 40px;
+
+      // 最近发布不渲染时，补上它原本的上间距（margin-top 40 + padding-top 40）
+      &.no-recent {
+        margin-top: 80px;
+      }
 
       .collection-title {
         font-weight: 600;
