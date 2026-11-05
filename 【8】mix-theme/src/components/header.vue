@@ -213,8 +213,7 @@
     class="header-wrapper"
     :class="{
       'reader-floating-nav': readerFloatingNavMode,
-      'reader-floating-nav--visible': readerFloatingNavVisible,
-      'reader-floating-nav--instant': readerFloatingNavInstant
+      'reader-floating-nav--hidden': readerFloatingNavMode && !readerFloatingNavVisible
     }"
     v-if="!inMobile"
   >
@@ -330,10 +329,12 @@
       </div>
     </div>
   </div>
+  <!-- 阅读页顶栏固定后仍占位，避免滚动高度来回变化导致页面闪动 -->
+  <div class="header-floating-spacer" v-if="!inMobile && readerFloatingNavMode"></div>
 </template>
 
 <script lang="ts">
-import { computed, inject, nextTick, reactive, ref, toRefs, watch } from "vue";
+import { computed, inject, reactive, ref, toRefs, watch } from "vue";
 import { useMyLocationHistory, useMyRouter, useMyScroll, useSearchHistory } from "../utils/hooks";
 import { callLogin, callLoginOut } from "@/api/freelog";
 import { useStore } from "vuex";
@@ -396,70 +397,41 @@ export default {
       return store.state.locationHistory;
     });
 
-    /** 阅读页 PC 顶栏：向下滚动隐藏，向上滚动出现（需先滚过阈值） */
+    /** 阅读页 PC 顶栏始终固定并占位，只切换显隐，避免 position 切换改动滚动高度 */
     const READER_FLOATING_NAV_THRESHOLD = 120;
     const READER_FLOATING_SCROLL_DELTA = 4;
-    const readerFloatingNavVisible = ref(false);
-    const readerFloatingNavInstant = ref(false);
+    const readerFloatingNavVisible = ref(true);
     let lastReaderScrollTop = 0;
-    let readerFloatingNavEngaged = false;
+    let ignoreScrollUntil = 0;
 
-    const readerFloatingNavMode = computed(() => {
-      if (route.path !== "/reader") return false;
-      return scrollTop.value > READER_FLOATING_NAV_THRESHOLD;
-    });
-
-    watch(readerFloatingNavMode, (mode, prevMode) => {
-      if (mode && !prevMode) {
-        readerFloatingNavVisible.value = false;
-        readerFloatingNavEngaged = true;
-        readerFloatingNavInstant.value = true;
-        nextTick(() => {
-          requestAnimationFrame(() => {
-            readerFloatingNavInstant.value = false;
-          });
-        });
-      }
-      if (!mode) {
-        readerFloatingNavEngaged = false;
-        readerFloatingNavVisible.value = false;
-      }
-    });
+    const readerFloatingNavMode = computed(() => route.path === "/reader");
 
     watch(
       () => [route.path, scrollTop.value] as const,
       ([path, top]) => {
         if (path !== "/reader") {
-          readerFloatingNavVisible.value = false;
-          readerFloatingNavEngaged = false;
-          lastReaderScrollTop = top;
-          return;
-        }
-
-        if (top <= READER_FLOATING_NAV_THRESHOLD) {
-          readerFloatingNavVisible.value = false;
-          readerFloatingNavEngaged = false;
-          lastReaderScrollTop = top;
-          return;
-        }
-
-        if (!readerFloatingNavEngaged) {
+          readerFloatingNavVisible.value = true;
           lastReaderScrollTop = top;
           return;
         }
 
         const delta = top - lastReaderScrollTop;
-        if (Math.abs(delta) < READER_FLOATING_SCROLL_DELTA) {
+        lastReaderScrollTop = top;
+
+        if (Date.now() < ignoreScrollUntil) return;
+
+        if (top <= READER_FLOATING_NAV_THRESHOLD) {
+          readerFloatingNavVisible.value = true;
           return;
         }
 
-        if (delta > 0) {
-          readerFloatingNavVisible.value = false;
-        } else {
-          readerFloatingNavVisible.value = true;
-        }
+        if (Math.abs(delta) < READER_FLOATING_SCROLL_DELTA) return;
 
-        lastReaderScrollTop = top;
+        const nextVisible = delta < 0;
+        if (nextVisible === readerFloatingNavVisible.value) return;
+
+        readerFloatingNavVisible.value = nextVisible;
+        ignoreScrollUntil = Date.now() + 320;
       }
     );
 
@@ -622,8 +594,7 @@ export default {
       locationHistory,
       menuBtnList,
       readerFloatingNavMode,
-      readerFloatingNavVisible,
-      readerFloatingNavInstant
+      readerFloatingNavVisible
     };
   }
 };

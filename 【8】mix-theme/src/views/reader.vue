@@ -1541,6 +1541,10 @@ export default {
     &.in-pc {
       width: 965px;
       margin: 0 auto;
+
+      .pre-next-recommend:not(:has(.pc-recommend)) {
+        margin-bottom: 100px;
+      }
     }
 
     .detail-weigui-container {
@@ -1556,7 +1560,12 @@ export default {
         height: 348px;
 
         .weigui-icon {
+          display: block;
+          width: 1em;
+          height: 1em;
           font-size: 220px;
+          line-height: 1;
+          text-align: center;
           opacity: 0.4;
         }
 
