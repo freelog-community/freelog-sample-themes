@@ -267,7 +267,7 @@ export default {
           .map((tag: string) => tag.trim())
           .filter(Boolean)
       : [];
-    const { query, route, router, switchPage } = useMyRouter();
+    const { query, route, switchPage } = useMyRouter();
     const datasOfGetList = useGetList();
 
     const data = reactive({
@@ -326,7 +326,7 @@ export default {
           [2, 3].includes(ele.articleInfo.articleType) &&
           ele.articleInfo.resourceType.includes("专栏") &&
           ele.articleInfo.status === 1 &&
-          [0, 4].includes(ele.defaulterIdentityType!)
+          [0, 4].includes(ele.defaulterIdentityType ?? -1)
       );
     });
 

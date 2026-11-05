@@ -5,7 +5,7 @@ import { useGetList, useMyRouter, useMyScroll } from "@/utils/hooks";
 const myArticleV2 = defineAsyncComponent(() => import("@/components/article-v2.vue"));
 
 const store = useStore();
-const { query, route, router, switchPage } = useMyRouter();
+const { route } = useMyRouter();
 const { scrollTop, clientHeight, scrollHeight, scrollTo } = useMyScroll();
 const datasOfGetList = useGetList();
 const data = reactive({
@@ -76,16 +76,12 @@ const getData = () => {
   );
 };
 
-const columnLength = computed(() => {
-  return datasOfGetList.listData.value.filter(ele => ele.articleInfo.articleType === 3).length;
-});
-
 const availableListData = computed(() => {
   // 基础过滤条件：只显示博客类型且状态正常且身份类型为0或4的文章
   const baseFilter = (ele: any) =>
     [2, 3].includes(ele.articleInfo.articleType) &&
     ele.articleInfo.status === 1 &&
-    [0, 4].includes(ele.defaulterIdentityType!);
+    [0, 4].includes(ele.defaulterIdentityType ?? -1);
 
   // 先进行基础过滤
   const baseFilteredData = datasOfGetList.listData.value.filter(baseFilter);
@@ -389,7 +385,7 @@ onBeforeMount(() => {
 
       .filter {
         display: flex;
-        justify-content: end;
+        justify-content: flex-end;
 
         .freelog {
           font-size: 18px;
